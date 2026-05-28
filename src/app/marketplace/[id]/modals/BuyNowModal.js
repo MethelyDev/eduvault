@@ -2,21 +2,19 @@
 
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaTimes, FaCheckCircle } from "react-icons/fa";
+import { FaTimes, FaCheckCircle, FaSpinner, FaExclamationTriangle, FaExternalLinkAlt, FaShoppingBag } from "react-icons/fa";
 import Image from "next/image";
 import { useAccount } from "wagmi";
-
-import { FaTimes, FaCheckCircle, FaSpinner, FaExclamationTriangle, FaExternalLinkAlt, FaShoppingBag } from "react-icons/fa";
 import Web3TransactionFallback from "@/components/web3/Web3TransactionFallback";
 import ConnectWalletModal from "./ConnectWalletModal";
 import TransactionStatusPanel from "@/components/transactions/TransactionStatusPanel";
 import { useCreatePurchase } from "@/hooks/api/usePurchases";
 import { useTransactionCenter } from "@/providers/TransactionProvider";
 import { TransactionStatus } from "@/lib/transactions/transaction";
+import { getExplorerTxUrl, ACCEPTED_ASSET } from "@/lib/config/chain";
 
 const SUPPORTED_ASSETS = [
-  { code: "XLM", issuer: null, label: "Stellar XLM" },
-  { code: "USDC", issuer: "G...USDCISSUER", label: "USDC (Stellar)" },
+    { code: ACCEPTED_ASSET, issuer: null, label: `Stellar ${ACCEPTED_ASSET}` },
 ];
 
 function useQuote(materialId, asset, price) {
@@ -472,7 +470,7 @@ export default function BuyNowModal({ isOpen, onClose, price, materialId, materi
                                                 <div className="flex justify-between items-center">
                                                     <span className="text-xs text-gray-500">Transaction</span>
                                                     <a
-                                                        href={`https://stellar.expert/explorer/testnet/tx/${purchaseResult.transactionHash}`}
+                                                        href={getExplorerTxUrl(purchaseResult.transactionHash)}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"

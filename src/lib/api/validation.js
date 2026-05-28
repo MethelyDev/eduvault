@@ -74,6 +74,7 @@ export function validateProfilePayload(body) {
     institution: sanitizeString(body?.institution, { maxLength: 160 }) || null,
     country: sanitizeString(body?.country, { maxLength: 80 }) || null,
     bio: sanitizeString(body?.bio, { maxLength: 1000 }) || null,
+    avatarUrl: sanitizeString(body?.avatarUrl, { maxLength: 2048 }) || null,
     twitterUrl: sanitizeString(body?.twitterUrl, { maxLength: 256 }) || null,
     githubUrl: sanitizeString(body?.githubUrl, { maxLength: 256 }) || null,
     websiteUrl: sanitizeString(body?.websiteUrl, { maxLength: 256 }) || null,

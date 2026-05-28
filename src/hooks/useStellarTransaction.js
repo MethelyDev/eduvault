@@ -16,10 +16,7 @@ import {
   classifyTransactionError,
   TransactionStatus,
 } from "@/lib/transactions/transaction";
-
-const STELLAR_RPC_URL =
-  process.env.NEXT_PUBLIC_STELLAR_RPC_URL ??
-  "https://soroban-testnet.stellar.org";
+import { STELLAR_RPC_URL } from "@/lib/config/chain";
 
 export const TxStatus = Object.freeze({
   Idle: "idle",
@@ -136,13 +133,6 @@ export function useStellarTransaction() {
       }
 
       try {
-        beginTransaction({
-          scope: "stellar",
-          title: description,
-          message: "Approve the transaction in your wallet.",
-          explorerBaseUrl,
-        });
-
         setState({ status: TxStatus.Signing, description });
         markStatus(TransactionStatus.Signing, {
           title: `${description} - waiting for wallet`,

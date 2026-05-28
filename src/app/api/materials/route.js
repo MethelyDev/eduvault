@@ -4,28 +4,13 @@ import { NextResponse } from "next/server";
 import { auditLog } from "@/lib/api/audit";
 import { withApiHardening } from "@/lib/api/hardening";
 import { validateMaterialPayload, validateMaterialUpdatePayload, validateChangeReason } from "@/lib/api/validation";
+import { getUserFromCookie } from "@/lib/api/auth";
 import { getDb } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
-import { verifyDashboardToken } from "@/lib/auth/session";
 import { buildMaterialHistoryEntry, EDITABLE_MATERIAL_FIELDS } from "@/lib/backend/schemaContracts";
 
 export const runtime = "nodejs";
 
-async function getUserFromCookie(request) {
-  const cookieHeader = request.headers.get("cookie") || "";
-  const cookieMatch = cookieHeader.match(/auth_token=([^;]+)/);
-  const token = cookieMatch ? decodeURIComponent(cookieMatch[1]) : null;
-  if (!token) return null;
-  const verification = await verifyDashboardToken(token, process.env.JWT_SECRET);
-  if (!verification.valid) {
-    return null;
-  }
-  return verification.payload;
-}
-
-/**
- * Removes sensitive fields from material documents before public/client exposure.
- */
 function sanitizeMaterial(doc) {
   if (!doc) return doc;
   const { storageKey, fileUrl, metadataUrl, ...safe } = doc;
@@ -48,14 +33,12 @@ export async function POST(request) {
 
     const db = await getDb();
 
-    // Resolve uploader wallet address reliably
     let userAddress = user.walletAddress || user.address || null;
     if (!userAddress && user.sub) {
       try {
         const dbUser = await db.collection("users").findOne({ _id: new ObjectId(user.sub) });
         userAddress = dbUser?.walletAddress || dbUser?.walletAddressLower || null;
       } catch (e) {
-        // best-effort; keep null if lookup fails
         console.warn("User lookup failed while creating material:", e?.message || e);
       }
     }

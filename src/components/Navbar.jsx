@@ -9,7 +9,9 @@ import { formatAddress } from "@/utils/formatAddress";
 import { WalletButton } from "./WalletBtn";
 import { useWallet } from "@/hooks/useWallet";
 import { useCart } from "@/hooks/useCart";
-import { FaShoppingCart } from "react-icons/fa";
+import { WalletStatus } from "@/providers/WalletProvider";
+import { FaShoppingCart, FaExternalLinkAlt } from "react-icons/fa";
+import { getExplorerAccountUrl } from "@/lib/config/chain";
 
 export default function Navbar() {
 	const [menuOpen, setMenuOpen] = useState(false);
@@ -20,6 +22,7 @@ export default function Navbar() {
 	const {
 		address,
 		isConnected,
+		state,
 		balances,
 		disconnect
 	} = useWallet();
@@ -129,6 +132,14 @@ export default function Navbar() {
 									>
 										Dashboard
 									</Link>
+									<a
+										href={getExplorerAccountUrl(address)}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
+									>
+										View on Explorer <FaExternalLinkAlt className="ml-1" size={10} />
+									</a>
 									<button
 										onClick={disconnect}
 										className="flex items-center w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-xl transition-colors"
@@ -139,7 +150,7 @@ export default function Navbar() {
 							</div>
 						</div>
 					) : (
-						<WalletButton	/>
+						<WalletButton />
 					)}
 
 					{/* Mobile Menu Button */}
@@ -171,6 +182,11 @@ export default function Navbar() {
 										<div className="w-2 h-2 bg-green-500 rounded-full"></div>
 										{formatAddress(address)}
 									</div>
+									{balance && (
+										<p className="text-xs text-gray-500">
+											{parseFloat(balance).toFixed(2)} {balanceSymbol}
+										</p>
+									)}
 									<div className="flex gap-2 w-full">
 										<Link
 											href="/dashboard"
@@ -192,7 +208,7 @@ export default function Navbar() {
 								</div>
 							) : (
 								<div className="flex justify-center w-full">
-									<WalletButton	/>
+									<WalletButton />
 								</div>
 							)}
 						</div>

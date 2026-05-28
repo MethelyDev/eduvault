@@ -13,7 +13,7 @@ import { useTransactionCenter } from "@/providers/TransactionProvider";
 import { TransactionStatus } from "@/lib/transactions/transaction";
 import { isUploadChain, SUPPORTED_CHAINS } from "@/lib/web3/chains";
 
-const contractAddress = "0x3f48520ca0d8d51345b416b5a3e083dac8790f55";
+const contractAddress = process.env.NEXT_PUBLIC_UPLOAD_CONTRACT_ADDRESS ?? "0x3f48520ca0d8d51345b416b5a3e083dac8790f55";
 
 
 const TRANSFER_EVENT = parseAbiItem(
