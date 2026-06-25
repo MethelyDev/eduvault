@@ -86,7 +86,8 @@ export async function GET(request) {
     if (sortBy === "price_asc") sort = { price: 1 };
     else if (sortBy === "price_desc") sort = { price: -1 };
     else if (sortBy === "popular") sort = { likes: -1 };
-    // Default: newest
+    else if (sortBy === "newest") sort = { createdAt: -1 };
+    else if (sortBy === "top_rated") sort = { rating: -1 };
 
     const total = await db.collection("materials").countDocuments(query);
     const items = await db

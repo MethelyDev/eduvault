@@ -65,6 +65,7 @@ export default function MarketPage() {
 
 	const [searchQuery, setSearchQuery] = useState("");
 	const [activeSubject, setActiveSubject] = useState("All");
+	const [activeCategory, setActiveCategory] = useState("All");
 	const [sortBy, setSortBy] = useState("Popular");
 
 	const [minPrice, setMinPrice] = useState("");
@@ -78,6 +79,7 @@ export default function MarketPage() {
 	const [hydrated, setHydrated] = useState(false);
 
 	const [subjects, setSubjects] = useState(["All"]);
+	const [categories, setCategories] = useState([]);
 	const [subjectsLoading, setSubjectsLoading] = useState(true);
 
 	const itemsPerPage = 12;
@@ -88,6 +90,7 @@ export default function MarketPage() {
 
 		setSearchQuery(params.get("search") || "");
 		setActiveSubject(params.get("subject") || "All");
+		setActiveCategory(params.get("category") || "All");
 		setSortBy(params.get("sortBy") || "Popular");
 
 		setMinPrice(params.get("minPrice") || "");
@@ -112,7 +115,8 @@ export default function MarketPage() {
 				if (res.ok) {
 					const data = await res.json();
 
-					setSubjects(data.subjects || ["All"]);
+					setSubjects(["All", ...(data.subjects || []).map((s) => s.label)]);
+					setCategories(data.categories || []);
 				}
 			} catch (err) {
 				console.error("Failed to load subjects:", err);
@@ -147,6 +151,10 @@ export default function MarketPage() {
 			params.set("subject", activeSubject);
 		}
 
+		if (activeCategory !== "All") {
+			params.set("category", activeCategory);
+		}
+
 		if (sortBy !== "Popular") {
 			params.set("sortBy", sortBy);
 		}
@@ -168,6 +176,7 @@ export default function MarketPage() {
 		hydrated,
 		searchQuery,
 		activeSubject,
+		activeCategory,
 		sortBy,
 		minPrice,
 		maxPrice,
@@ -186,6 +195,11 @@ export default function MarketPage() {
 					? activeSubject
 					: undefined,
 
+			category:
+				activeCategory !== "All"
+					? activeCategory
+					: undefined,
+
 			sortBy:
 				sortBy === "Popular"
 					? "popular"
@@ -193,6 +207,10 @@ export default function MarketPage() {
 					? "price_asc"
 					: sortBy === "Price: High to Low"
 					? "price_desc"
+					: sortBy === "Newest"
+					? "newest"
+					: sortBy === "Top Rated"
+					? "top_rated"
 					: undefined,
 
 			minPrice: minPrice || undefined,
@@ -230,6 +248,7 @@ export default function MarketPage() {
 	const resetFilters = () => {
 		setSearchQuery("");
 		setActiveSubject("All");
+		setActiveCategory("All");
 		setSortBy("Popular");
 
 		setMinPrice("");
@@ -246,33 +265,57 @@ export default function MarketPage() {
 			<Navbar />
 
 			<section className="flex flex-col lg:flex-row min-h-screen bg-[#fffaf6]">
-				{/* Mobile Subjects */}
-				<nav aria-label="Subject filters" className="lg:hidden w-full overflow-x-auto bg-white border-b border-gray-200 px-4 py-3 hide-scrollbar flex gap-2">
-					{subjectsLoading ? (
-						<div className="px-4 py-1.5 text-sm text-gray-500">
-							Loading subjects...
-						</div>
-					) : (
-						subjects.map((subject) => (
-							<button
-								key={subject}
-								onClick={() => {
-									setActiveSubject(subject);
-									setCurrentPage(1);
-								}}
-								role="tab"
-								aria-selected={activeSubject === subject}
-								className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm transition-all focus-visible:ring-2 focus-visible:ring-blue-500 ${
-									activeSubject === subject
-										? "bg-blue-600 text-white font-medium shadow-sm"
-										: "bg-gray-100 text-gray-600 hover:bg-gray-200"
-								}`}
-							>
-								{subject}
-							</button>
-						))
+				{/* Mobile Subjects + Categories */}
+				<div className="lg:hidden w-full bg-white border-b border-gray-200">
+					<nav aria-label="Subject filters" className="overflow-x-auto px-4 py-3 hide-scrollbar flex gap-2">
+						{subjectsLoading ? (
+							<div className="px-4 py-1.5 text-sm text-gray-500">
+								Loading subjects...
+							</div>
+						) : (
+							subjects.map((subject) => (
+								<button
+									key={subject}
+									onClick={() => {
+										setActiveSubject(subject);
+										setCurrentPage(1);
+									}}
+									role="tab"
+									aria-selected={activeSubject === subject}
+									className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm transition-all focus-visible:ring-2 focus-visible:ring-blue-500 ${
+										activeSubject === subject
+											? "bg-blue-600 text-white font-medium shadow-sm"
+											: "bg-gray-100 text-gray-600 hover:bg-gray-200"
+									}`}
+								>
+									{subject}
+								</button>
+							))
+						)}
+					</nav>
+					{categories.length > 0 && (
+						<nav aria-label="Category filters" className="overflow-x-auto px-4 pb-3 hide-scrollbar flex gap-2">
+							{[{ id: "All", label: "All" }, ...categories].map((cat) => (
+								<button
+									key={cat.id}
+									onClick={() => {
+										setActiveCategory(cat.id);
+										setCurrentPage(1);
+									}}
+									role="tab"
+									aria-selected={activeCategory === cat.id}
+									className={`whitespace-nowrap px-3 py-1 rounded-full text-xs transition-all focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+										activeCategory === cat.id
+											? "bg-indigo-600 text-white font-medium shadow-sm"
+											: "bg-gray-100 text-gray-600 hover:bg-gray-200"
+									}`}
+								>
+									{cat.label}
+								</button>
+							))}
+						</nav>
 					)}
-				</nav>
+				</div>
 
 				{/* Sidebar */}
 				<aside className="hidden lg:block w-72 bg-white border-r border-gray-200 px-6 py-10 sticky top-0 h-screen overflow-y-auto">
@@ -311,6 +354,35 @@ export default function MarketPage() {
 						)}
 					</ul>
 					</nav>
+
+					{categories.length > 0 && (
+						<nav aria-label="Category filters" className="mt-8">
+							<h3 className="text-sm font-bold text-gray-900 mb-6 uppercase tracking-wider">
+								Categories
+							</h3>
+							<ul role="list" className="space-y-1">
+								{[{ id: "All", label: "All Categories" }, ...categories].map((cat) => (
+									<li key={cat.id} role="listitem">
+										<button
+											onClick={() => {
+												setActiveCategory(cat.id);
+												setCurrentPage(1);
+											}}
+											role="tab"
+											aria-selected={activeCategory === cat.id}
+											className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all focus-visible:ring-2 focus-visible:ring-blue-500 ${
+												activeCategory === cat.id
+													? "bg-indigo-50 text-indigo-700 font-semibold"
+													: "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+											}`}
+										>
+											{cat.label}
+										</button>
+									</li>
+								))}
+							</ul>
+						</nav>
+					)}
 				</aside>
 
 				{/* Main */}
@@ -412,6 +484,8 @@ export default function MarketPage() {
 									<option>
 										Price: High to Low
 									</option>
+									<option>Newest</option>
+									<option>Top Rated</option>
 								</select>
 							</div>
 						</div>
